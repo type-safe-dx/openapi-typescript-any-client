@@ -1,6 +1,9 @@
 import yaml from "yaml";
 import fs from "fs";
 import openapiTS, { OpenAPITSOptions } from "openapi-typescript";
+import { name as packageName } from "../package.json";
+
+export type { Get } from "./types";
 
 export default async function generate({
   schemaFilePath,
@@ -8,12 +11,15 @@ export default async function generate({
 }: { schemaFilePath: string; openApiTsOption?: OpenAPITSOptions }) {
   const schema = yaml.parse(fs.readFileSync(schemaFilePath, "utf-8"));
 
-  const operationIdToPathWithMethod: Map<string, { path: string; method: string }> = new Map();
+  const operationIdToSchemaInfo: Map<
+    string,
+    { path: string; method: string; summary?: string; description?: string }
+  > = new Map();
   for (const path in schema.paths) {
     for (const method in schema.paths[path]) {
-      const { operationId } = schema.paths[path][method];
+      const { operationId, summary, description } = schema.paths[path][method];
       if (operationId) {
-        operationIdToPathWithMethod.set(operationId, { path, method });
+        operationIdToSchemaInfo.set(operationId, { path, method, summary, description });
       } else {
         console.error(`Missing operationId for paths.${path}.${method}`);
         process.exit(1);
@@ -22,19 +28,49 @@ export default async function generate({
   }
 
   return `\
-${await openapiTS(schema, openApiTsOption)}
+import { Get } from "${packageName}"
+
+${await openapiTS(schema, { ...openApiTsOption, commentHeader: "" })}
   
 export const operationIdToPath = {
-  ${[...operationIdToPathWithMethod.entries()]
+  ${[...operationIdToSchemaInfo.entries()]
     .map(([operationId, { path }]) => `${operationId}: "${path}"`)
-    .join(",\n")}
+    .join(",\n  ")}
 } as const
 
 export const operationIdToMethod = {
-  ${[...operationIdToPathWithMethod.entries()]
+  ${[...operationIdToSchemaInfo.entries()]
     .map(([operationId, { method }]) => `${operationId}: "${method}"`)
-    .join(",\n")}
+    .join(",\n  ")}
 } as const
+
+export type OperationIds = keyof operations
+
+export type OperationIdToResponseBody<OpId extends OperationIds> = Get<operations[OpId], ["requestBody", "content", "application/json"]>
+
+type Func<OpId extends OperationIds> = (
+  params: Get<operations[OpId], ["parameters"]> &
+    OperationIdToResponseBody<OpId> extends never
+      ? {}
+      : {
+          body: OperationIdToResponseBody<OpId>
+        }
+) => Promise<
+  Get<operations[OpId], ["responses", "200", "content", "application/json"]>
+>
+
+type Fetchers = {
+  ${[...operationIdToSchemaInfo.entries()]
+    .map(
+      ([operationId, { path, summary, description }]) => `/**
+   * @path ${path}${summary ? `\n   * @summary ${summary}` : ""}${
+     description ? `\n   * @description ${description}` : ""
+   }
+   */
+  ${operationId}: Func<"${operationId}">`,
+    )
+    .join(",\n\n  ")}
+}
 
 export const createFetcher = (
   ownFetcher: (
@@ -44,7 +80,7 @@ export const createFetcher = (
       query?: Record<string, unknown>
       body?: Record<string, unknown>
     }
-  ) => Promise<any>
+  ) => Promise<unknown>
 ) =>
   new Proxy(
     {},
@@ -58,7 +94,7 @@ export const createFetcher = (
           return ownFetcher(
             operationIdToPath[operationId].replace(
               /\\{\\w+\\}/g,
-              (_, key) => params.path?.[key]
+              (_, key) => (params.path as any)[key]
             ),
             {
               method: operationIdToMethod[operationId],
@@ -69,23 +105,6 @@ export const createFetcher = (
         }
       },
     }
-  ) as {
-    [OpId in keyof operations]: (
-      params: Get<operations[OpId], "parameters"> &
-        (Get<
-          operations[OpId],
-          "requestBody.content.application/json"
-        > extends unknown
-          ? {}
-          : {
-              body: Get<
-                operations[OpId],
-                "requestBody.content.application/json"
-              >
-            })
-    ) => Promise<
-      Get<operations[OpId], "responses.200.content.application/json">
-    >
-  }
+  ) as Fetchers
 `;
 }
