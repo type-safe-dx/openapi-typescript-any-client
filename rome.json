@@ -6,7 +6,8 @@
     "lineWidth": 100
   },
   "linter": {
-    "enabled": true
+    "enabled": true,
+    "ignore": ["test/generated/index.ts"]
   },
   "files": {
     "ignore": ["pnpm-lock.yaml", "dist", "coverage"]

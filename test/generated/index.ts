@@ -1,4 +1,4 @@
-import { Get } from "@kiyoshiro/openapi-typescript-any-client";
+import { Get } from "../../src";
 
 export interface paths {
   "/users": {
