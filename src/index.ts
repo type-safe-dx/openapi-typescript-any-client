@@ -76,35 +76,31 @@ export const createFetcher = (
   ownFetcher: (
     path: string,
     param: {
-      method: "get" | "post" | "put" | "patch" | "delete" | "option" | "head"
-      query?: Record<string, unknown>
-      body?: Record<string, unknown>
-    }
-  ) => Promise<unknown>
+      method: "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
+      body?: Record<string, unknown>;
+    },
+  ) => Promise<unknown>,
 ) =>
   new Proxy(
     {},
     {
-      get: (_, operationId: keyof operations) => {
-        return (params: {
-          path?: Record<string, unknown>
-          query?: Record<string, unknown>
-          body?: Record<string, unknown>
-        }) => {
-          return ownFetcher(
+      get:
+        (_, operationId: keyof operations) =>
+        (params: {
+          path?: Record<string, unknown>;
+          query?: Record<string, unknown>;
+          body?: Record<string, unknown>;
+        }) =>
+          ownFetcher(
             operationIdToPath[operationId].replace(
               /\\{\\w+\\}/g,
-              (_, key) => (params.path as any)[key]
-            ),
+              (_, key) => (params.path as any)[key],
+              ) + (params.query ? \`?\${new URLSearchParams(params.query as any)}\` : ""),
             {
               method: operationIdToMethod[operationId],
-              query: params.query,
               body: params.body,
-            }
-          )
-        }
-      },
-    }
-  ) as Fetchers
-`;
+            },
+          ),
+    },
+  ) as Fetchers;`;
 }

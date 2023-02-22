@@ -6,7 +6,6 @@ specifiers:
   '@vitest/coverage-c8': 0.28.5
   axios: 1.3.3
   bumpp: 8.2.1
-  c8: 7.13.0
   husky: ^8.0.0
   jsdom: ^21.1.0
   lint-staged: 13.1.2
@@ -14,8 +13,8 @@ specifiers:
   openapi-typescript: ^6.1.0
   rome: 11.0.0
   typescript: 4.9.5
-  ufo: 1.1.0
   unbuild: 1.1.2
+  vite: 4.1.4
   vitest: 0.28.5
   yaml: ^2.2.1
 
@@ -29,15 +28,14 @@ devDependencies:
   '@vitest/coverage-c8': 0.28.5_jsdom@21.1.0
   axios: 1.3.3
   bumpp: 8.2.1
-  c8: 7.13.0
   husky: 8.0.3
   jsdom: 21.1.0
   lint-staged: 13.1.2
   msw: 1.0.1_typescript@4.9.5
   rome: 11.0.0
   typescript: 4.9.5
-  ufo: 1.1.0
   unbuild: 1.1.2
+  vite: 4.1.4_@types+node@18.13.0
   vitest: 0.28.5_jsdom@21.1.0
 
 packages:
@@ -3327,7 +3325,7 @@ packages:
       picocolors: 1.0.0
       source-map: 0.6.1
       source-map-support: 0.5.21
-      vite: 4.0.4_@types+node@18.13.0
+      vite: 4.1.4_@types+node@18.13.0
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -3338,8 +3336,8 @@ packages:
       - terser
     dev: true
 
-  /vite/4.0.4_@types+node@18.13.0:
-    resolution: {integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==}
+  /vite/4.1.4_@types+node@18.13.0:
+    resolution: {integrity: sha512-3knk/HsbSTKEin43zHu7jTwYWv81f8kgAL99G5NWBcA1LKvtvcVAC4JjBH1arBunO9kQka+1oGbrMKOjk4ZrBg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -3416,7 +3414,7 @@ packages:
       tinybench: 2.3.1
       tinypool: 0.3.1
       tinyspy: 1.0.2
-      vite: 4.0.4_@types+node@18.13.0
+      vite: 4.1.4_@types+node@18.13.0
       vite-node: 0.28.5_@types+node@18.13.0
       why-is-node-running: 2.2.2
     transitivePeerDependencies:

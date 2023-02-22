@@ -1,4 +1,4 @@
-import { Get } from "@kiyoshiro/openapi-typescript-agnostic"
+import { Get } from "@kiyoshiro/openapi-typescript-any-client";
 
 export interface paths {
   "/users": {
@@ -19,7 +19,7 @@ export interface components {
   schemas: {
     User: {
       /**
-       * Format: int64 
+       * Format: int64
        * @example 1
        */
       id?: number;
@@ -31,7 +31,7 @@ export interface components {
       password?: string;
       phone?: string;
       /**
-       * Format: int32 
+       * Format: int32
        * @description User Status
        */
       userStatus?: number;
@@ -47,7 +47,6 @@ export interface components {
 export type external = Record<string, never>;
 
 export interface operations {
-
   listUsers: {
     /** List all users */
     parameters: {
@@ -60,7 +59,7 @@ export interface operations {
       /** @description A paged array of users */
       200: {
         content: {
-          "application/json": (components["schemas"]["User"])[];
+          "application/json": components["schemas"]["User"][];
         };
       };
     };
@@ -99,85 +98,81 @@ export interface operations {
   };
 }
 
-  
 export const operationIdToPath = {
   listUsers: "/users",
   createUser: "/users",
-  getUser: "/users/{id}"
-} as const
+  getUser: "/users/{id}",
+} as const;
 
 export const operationIdToMethod = {
   listUsers: "get",
   createUser: "post",
-  getUser: "get"
-} as const
+  getUser: "get",
+} as const;
 
-export type OperationIds = keyof operations
+export type OperationIds = keyof operations;
 
-export type OperationIdToResponseBody<OpId extends OperationIds> = Get<operations[OpId], ["requestBody", "content", "application/json"]>
+export type OperationIdToResponseBody<OpId extends OperationIds> = Get<
+  operations[OpId],
+  ["requestBody", "content", "application/json"]
+>;
 
 type Func<OpId extends OperationIds> = (
-  params: Get<operations[OpId], ["parameters"]> &
-    OperationIdToResponseBody<OpId> extends never
-      ? {}
-      : {
-          body: OperationIdToResponseBody<OpId>
-        }
-) => Promise<
-  Get<operations[OpId], ["responses", "200", "content", "application/json"]>
->
+  params: Get<operations[OpId], ["parameters"]> & OperationIdToResponseBody<OpId> extends never
+    ? {}
+    : {
+        body: OperationIdToResponseBody<OpId>;
+      },
+) => Promise<Get<operations[OpId], ["responses", "200", "content", "application/json"]>>;
 
 type Fetchers = {
   /**
    * @path /users
    * @summary List all users
    */
-  listUsers: Func<"listUsers">,
+  listUsers: Func<"listUsers">;
 
   /**
    * @path /users
    * @summary Create an user
    */
-  createUser: Func<"createUser">,
+  createUser: Func<"createUser">;
 
   /**
    * @path /users/{id}
    * @summary Get an user
    */
-  getUser: Func<"getUser">
-}
+  getUser: Func<"getUser">;
+};
 
 export const createFetcher = (
   ownFetcher: (
     path: string,
     param: {
-      method: "get" | "post" | "put" | "patch" | "delete" | "option" | "head"
-      query?: Record<string, unknown>
-      body?: Record<string, unknown>
-    }
-  ) => Promise<unknown>
+      method: "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
+      body?: Record<string, unknown>;
+    },
+  ) => Promise<unknown>,
 ) =>
   new Proxy(
     {},
     {
-      get: (_, operationId: keyof operations) => {
-        return (params: {
-          path?: Record<string, unknown>
-          query?: Record<string, unknown>
-          body?: Record<string, unknown>
-        }) => {
-          return ownFetcher(
+      get:
+        (_, operationId: keyof operations) =>
+        (params: {
+          path?: Record<string, unknown>;
+          query?: Record<string, unknown>;
+          body?: Record<string, unknown>;
+        }) =>
+          ownFetcher(
             operationIdToPath[operationId].replace(
               /\{\w+\}/g,
-              (_, key) => (params.path as any)[key]
-            ),
+              (_, key) => (params.path as any)[key],
+            ) + (params.query ? `?${new URLSearchParams(params.query as any)}` : ""),
             {
               method: operationIdToMethod[operationId],
-              query: params.query,
               body: params.body,
-            }
-          )
-        }
-      },
-    }
-  ) as Fetchers
+            },
+          ),
+    },
+  ) as Fetchers;

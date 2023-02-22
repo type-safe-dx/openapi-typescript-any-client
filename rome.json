@@ -9,6 +9,6 @@
     "enabled": true
   },
   "files": {
-    "ignore": ["pnpm-lock.yaml", "dist", "coverage", "test/generated"]
+    "ignore": ["pnpm-lock.yaml", "dist", "coverage"]
   }
 }
