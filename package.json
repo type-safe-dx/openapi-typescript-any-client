@@ -1,5 +1,5 @@
 {
-  "name": "@kiyoshiro/openapi-typescript-agnostic",
+  "name": "@kiyoshiro/openapi-typescript-any-client",
   "version": "0.0.1",
   "license": "MIT",
   "main": "dist/index.cjs",
