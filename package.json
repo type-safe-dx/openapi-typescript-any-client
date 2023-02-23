@@ -7,6 +7,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "bin": "./dist/cli.mjs",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -34,6 +35,7 @@
     ]
   },
   "dependencies": {
+    "cac": "^6.7.14",
     "openapi-typescript": "^6.1.0",
     "yaml": "^2.2.1"
   },
