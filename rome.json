@@ -6,10 +6,14 @@
     "lineWidth": 100
   },
   "linter": {
-    "enabled": true,
-    "ignore": ["test/generated/index.ts"]
+    "enabled": true
   },
   "files": {
-    "ignore": ["pnpm-lock.yaml", "dist", "coverage"]
+    "ignore": [
+      "pnpm-lock.yaml",
+      "dist",
+      "coverage",
+      "test/generated/index.ts"
+    ]
   }
 }
