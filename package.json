@@ -1,6 +1,6 @@
 {
   "name": "@kiyoshiro/openapi-typescript-any-client",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "license": "MIT",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
