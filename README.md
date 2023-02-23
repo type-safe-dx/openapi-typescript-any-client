@@ -31,6 +31,6 @@ export const fetcher = createFetcher((path, { method, body }) =>
 
 // ky
 export const fetcher = createFetcher((path, { method, body }) =>
-  ky(path, { prefixUrl: "http://localhost:3000",, url: method, json: body }).json()
+  ky(path, { prefixUrl: "http://localhost:3000", url: method, json: body }).json()
 );
 ```
