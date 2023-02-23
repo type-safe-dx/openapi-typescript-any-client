@@ -6,7 +6,6 @@
 
 ![demo](https://user-images.githubusercontent.com/40315079/220818384-0d7701f3-6883-4de1-96c7-7f56c3aa6333.gif)
 
-
 ## Usage
 
 ### Install
@@ -36,4 +35,11 @@ export const fetcher = createFetcher((path, { method, body }) =>
 export const fetcher = createFetcher((path, { method, body }) =>
   ky(path, { prefixUrl: "http://localhost:3000", url: method, json: body }).json()
 );
+```
+
+### Use `fetcher`
+
+```ts
+// `listUsers` comes from operationId in your OpenAPI schema
+const res = await fetcher.listUsers({ query: { per: 10, page: 0 } });
 ```
