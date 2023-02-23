@@ -20,6 +20,10 @@ test("listUsers", async () => {
       return res(ctx.json(dummyUsers));
     }),
   );
+  const requestSpy = vi.fn<{ url: string; method: string }[]>();
+  server.events.on("request:start", (req) =>
+    requestSpy({ url: req.url.toString(), method: req.method }),
+  );
 
   const fetcher = createFetcher((path, { method, body }) =>
     axios({ baseURL, url: path, method, data: body }).then((res) => res.data),
@@ -27,7 +31,12 @@ test("listUsers", async () => {
   const res = await fetcher.listUsers({ query: { per: 10, page: 0 } });
 
   expect(res).toStrictEqual(dummyUsers);
-
+  expect(requestSpy).toHaveBeenCalledWith(
+    expect.objectContaining({
+      url: "http://localhost:3000/users?per=10&page=0",
+      method: "GET",
+    }),
+  );
   expectTypeOf(res).toMatchTypeOf<
     {
       id?: number | undefined;
