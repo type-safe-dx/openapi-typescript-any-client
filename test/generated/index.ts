@@ -1,4 +1,4 @@
-import { Get } from "../../src";
+import { Get } from "../../src"
 
 export interface paths {
   "/users": {
@@ -19,7 +19,7 @@ export interface components {
   schemas: {
     User: {
       /**
-       * Format: int64
+       * Format: int64 
        * @example 1
        */
       id?: number;
@@ -31,7 +31,7 @@ export interface components {
       password?: string;
       phone?: string;
       /**
-       * Format: int32
+       * Format: int32 
        * @description User Status
        */
       userStatus?: number;
@@ -47,6 +47,7 @@ export interface components {
 export type external = Record<string, never>;
 
 export interface operations {
+
   listUsers: {
     /** List all users */
     parameters: {
@@ -59,7 +60,7 @@ export interface operations {
       /** @description A paged array of users */
       200: {
         content: {
-          "application/json": components["schemas"]["User"][];
+          "application/json": (components["schemas"]["User"])[];
         };
       };
     };
@@ -98,52 +99,50 @@ export interface operations {
   };
 }
 
+  
 export const operationIdToPath = {
   listUsers: "/users",
   createUser: "/users",
-  getUser: "/users/{id}",
-} as const;
+  getUser: "/users/{id}"
+} as const
 
 export const operationIdToMethod = {
   listUsers: "get",
   createUser: "post",
-  getUser: "get",
-} as const;
+  getUser: "get"
+} as const
 
-export type OperationIds = keyof operations;
+export type OperationIds = keyof operations
 
-export type OperationIdToResponseBody<OpId extends OperationIds> = Get<
-  operations[OpId],
-  ["requestBody", "content", "application/json"]
->;
+export type OperationIdToResponseBody<OpId extends OperationIds> = Get<operations[OpId], ["requestBody", "content", "application/json"]>
 
 type Func<OpId extends OperationIds> = (
-  params: Get<operations[OpId], ["parameters"]> & OperationIdToResponseBody<OpId> extends never
-    ? {}
-    : {
-        body: OperationIdToResponseBody<OpId>;
-      },
-) => Promise<Get<operations[OpId], ["responses", "200", "content", "application/json"]>>;
+  params: Get<operations[OpId], ["parameters"]> & (
+    OperationIdToResponseBody<OpId> extends never ? {} : { body: OperationIdToResponseBody<OpId> }
+  )
+) => Promise<
+  Get<operations[OpId], ["responses", "200", "content", "application/json"]>
+>
 
 type Fetchers = {
   /**
    * @path /users
    * @summary List all users
    */
-  listUsers: Func<"listUsers">;
+  listUsers: Func<"listUsers">,
 
   /**
    * @path /users
    * @summary Create an user
    */
-  createUser: Func<"createUser">;
+  createUser: Func<"createUser">,
 
   /**
    * @path /users/{id}
    * @summary Get an user
    */
-  getUser: Func<"getUser">;
-};
+  getUser: Func<"getUser">
+}
 
 export const createFetcher = (
   ownFetcher: (
@@ -168,7 +167,7 @@ export const createFetcher = (
             operationIdToPath[operationId].replace(
               /\{\w+\}/g,
               (_, key) => (params.path as any)[key],
-            ) + (params.query ? `?${new URLSearchParams(params.query as any)}` : ""),
+              ) + (params.query ? `?${new URLSearchParams(params.query as any)}` : ""),
             {
               method: operationIdToMethod[operationId],
               body: params.body,

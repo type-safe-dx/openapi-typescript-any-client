@@ -49,12 +49,9 @@ export type OperationIds = keyof operations
 export type OperationIdToResponseBody<OpId extends OperationIds> = Get<operations[OpId], ["requestBody", "content", "application/json"]>
 
 type Func<OpId extends OperationIds> = (
-  params: Get<operations[OpId], ["parameters"]> &
-    OperationIdToResponseBody<OpId> extends never
-      ? {}
-      : {
-          body: OperationIdToResponseBody<OpId>
-        }
+  params: Get<operations[OpId], ["parameters"]> & (
+    OperationIdToResponseBody<OpId> extends never ? {} : { body: OperationIdToResponseBody<OpId> }
+  )
 ) => Promise<
   Get<operations[OpId], ["responses", "200", "content", "application/json"]>
 >
