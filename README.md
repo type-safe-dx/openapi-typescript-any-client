@@ -4,6 +4,9 @@
 
 [![codecov](https://codecov.io/gh/KoichiKiyokawa/openapi-typescript-any-client/branch/main/graph/badge.svg?token=KBPSYME8M7)](https://codecov.io/gh/KoichiKiyokawa/openapi-typescript-any-client)
 
+![demo](https://user-images.githubusercontent.com/40315079/220818384-0d7701f3-6883-4de1-96c7-7f56c3aa6333.gif)
+
+
 ## Usage
 
 ### Install
