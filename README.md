@@ -26,6 +26,13 @@ openapi-typescript-any-client ./openapi.yaml -o generated.ts
 // fetcher.ts
 import { createFetcher } from "./generated";
 
+// standard fetch
+export const fetcher = createFetcher((path, { method, body }) =>
+  fetch("http://localhost:3000" + path, { method, body: JSON.stringify(body) }).then((res) =>
+    res.json()
+  )
+);
+
 // axios
 export const fetcher = createFetcher((path, { method, body }) =>
   axios({ baseURL: "http://localhost:3000", url: path, method, data: body }).then((res) => res.data)
@@ -37,7 +44,7 @@ export const fetcher = createFetcher((path, { method, body }) =>
 );
 ```
 
-### Use `fetcher`
+### Use the `fetcher` created above
 
 ```ts
 // `listUsers` comes from operationId in your OpenAPI schema
