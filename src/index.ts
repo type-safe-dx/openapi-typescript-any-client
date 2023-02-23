@@ -31,7 +31,6 @@ export default async function generate({
 import { Get } from "${packageName}"
 
 ${await openapiTS(schema, { ...openApiTsOption, commentHeader: "" })}
-  
 export const operationIdToPath = {
   ${[...operationIdToSchemaInfo.entries()]
     .map(([operationId, { path }]) => `${operationId}: "${path}"`)
@@ -53,7 +52,7 @@ type Func<OpId extends OperationIds> = (
     OperationIdToResponseBody<OpId> extends never ? {} : { body: OperationIdToResponseBody<OpId> }
   )
 ) => Promise<
-  Get<operations[OpId], ["responses", "200", "content", "application/json"]>
+  Get<operations[OpId], ["responses", 200, "content", "application/json"]>
 >
 
 type Fetchers = {

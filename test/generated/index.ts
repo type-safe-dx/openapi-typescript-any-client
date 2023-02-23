@@ -99,7 +99,6 @@ export interface operations {
   };
 }
 
-  
 export const operationIdToPath = {
   listUsers: "/users",
   createUser: "/users",
@@ -121,7 +120,7 @@ type Func<OpId extends OperationIds> = (
     OperationIdToResponseBody<OpId> extends never ? {} : { body: OperationIdToResponseBody<OpId> }
   )
 ) => Promise<
-  Get<operations[OpId], ["responses", "200", "content", "application/json"]>
+  Get<operations[OpId], ["responses", 200, "content", "application/json"]>
 >
 
 type Fetchers = {
