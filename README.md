@@ -2,12 +2,35 @@
 
 > Create type-safe fetcher with any fetch client, such as axios, ky and so on.
 
-[![codecov](https://codecov.io/gh/KoichiKiyokawa/msw-object/branch/main/graph/badge.svg?token=NY24WQJELL)](https://codecov.io/gh/KoichiKiyokawa/msw-object)
+[![codecov](https://codecov.io/gh/KoichiKiyokawa/openapi-typescript-any-client/branch/main/graph/badge.svg?token=KBPSYME8M7)](https://codecov.io/gh/KoichiKiyokawa/openapi-typescript-any-client)
 
 ## Usage
 
-```sh
+### Install
+
+```bash
 npm i -D @kiyoshiro/openapi-typescript-any-client
 ```
 
-🚧 WIP 🚧
+### Generate code
+
+```bash
+openapi-typescript-any-client ./openapi.yaml -o generated.ts
+```
+
+### Define your own fetcher with the generated code
+
+```ts
+// fetcher.ts
+import { createFetcher } from "./generated";
+
+// axios
+export const fetcher = createFetcher((path, { method, body }) =>
+  axios({ baseURL: "http://localhost:3000", url: path, method, data: body }).then((res) => res.data)
+);
+
+// ky
+export const fetcher = createFetcher((path, { method, body }) =>
+  ky(path, { prefixUrl: "http://localhost:3000",, url: method, json: body }).json()
+);
+```
