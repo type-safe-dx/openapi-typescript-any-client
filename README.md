@@ -22,31 +22,123 @@ openapi-typescript-any-client ./openapi.yaml -o generated.ts
 
 ### Define your own fetcher with the generated code
 
+<table>
+<thead>
+<tr>
+<th>path pattern</th>
+<th>operationId pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+
 ```ts
 // fetcher.ts
-import { createFetcher } from "./generated";
+import { createBaseFetcher } from "./generated";
 
 // standard fetch
-export const fetcher = createFetcher((path, { method, body }) =>
-  fetch("http://localhost:3000" + path, { method, body: JSON.stringify(body) }).then((res) =>
-    res.json()
-  )
+export const fetcher = createBaseFetcher((path, { method, body }) =>
+  fetch("http://localhost:3000" + path, {
+    method,
+    body: JSON.stringify(body),
+  }).then((res) => res.json())
 );
 
 // axios
-export const fetcher = createFetcher((path, { method, body }) =>
-  axios({ baseURL: "http://localhost:3000", url: path, method, data: body }).then((res) => res.data)
+export const fetcher = createBaseFetcher((path, { method, body }) =>
+  axios({
+    baseURL: "http://localhost:3000",
+    url: path,
+    method,
+    data: body,
+  }).then((res) => res.data)
 );
 
 // ky
-export const fetcher = createFetcher((path, { method, body }) =>
-  ky(path, { prefixUrl: "http://localhost:3000", url: method, json: body }).json()
+export const fetcher = createBaseFetcher((path, { method, body }) =>
+  ky(path, {
+    prefixUrl: "http://localhost:3000",
+    url: path,
+    method,
+    json: body,
+  }).json()
 );
 ```
 
-### Use the `fetcher` created above
+</td>
+<td>
 
 ```ts
-// `listUsers` comes from operationId in your OpenAPI schema
-const res = await fetcher.listUsers({ query: { per: 10, page: 0 } });
+// fetcher.ts
+import { createOperationIdFetcher } from "./generated";
+
+// standard fetch
+export const fetcherObj = createOperationIdFetcher((path, { method, body }) =>
+  fetch("http://localhost:3000" + path, {
+    method,
+    body: JSON.stringify(body),
+  }).then((res) => res.json())
+);
+
+// axios
+export const fetcherObj = createOperationIdFetcher((path, { method, body }) =>
+  axios({
+    baseURL: "http://localhost:3000",
+    url: path,
+    method,
+    data: body,
+  }).then((res) => res.data)
+);
+
+// ky
+export const fetcherObj = createOperationIdFetcher((path, { method, body }) =>
+  ky(path, {
+    prefixUrl: "http://localhost:3000",
+    url: path,
+    method,
+    json: body,
+  }).json()
+);
 ```
+
+</td>
+
+</tbody>
+</table>
+
+### Use the `fetcher` created above (It's type-safe!)
+
+<table>
+<thead>
+<tr>
+<th>path pattern</th>
+<th>operationId pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+
+```ts
+const res = await fetcher("/users", {
+  method: "get",
+  query: { per: 10, page: 0 },
+});
+```
+
+</td>
+<td>
+
+```ts
+// `listUsers` comes from operationId
+// in your OpenAPI schema
+const res = await fetcherObj.listUsers({
+  query: { per: 10, page: 0 },
+});
+```
+
+</td>
+
+</tbody>
+</table>
