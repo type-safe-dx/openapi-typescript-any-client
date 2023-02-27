@@ -31,72 +31,59 @@ export default async function generate({
 import { Get } from "${packageName}"
 
 ${await openapiTS(schema, { ...openApiTsOption, commentHeader: "" })}
-export const operationIdToPath = {
-  ${[...operationIdToSchemaInfo.entries()]
-    .map(([operationId, { path }]) => `${operationId}: "${path}"`)
-    .join(",\n  ")}
-} as const
-
-export const operationIdToMethod = {
-  ${[...operationIdToSchemaInfo.entries()]
-    .map(([operationId, { method }]) => `${operationId}: "${method}"`)
-    .join(",\n  ")}
-} as const
-
 export type OperationIds = keyof operations
 
-export type OperationIdToResponseBody<OpId extends OperationIds> = Get<operations[OpId], ["requestBody", "content", "application/json"]>
+type HttpMethods = "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
 
-type Func<OpId extends OperationIds> = (
-  params: Get<operations[OpId], ["parameters"]> & (
-    OperationIdToResponseBody<OpId> extends never ? {} : { body: OperationIdToResponseBody<OpId> }
-  )
-) => Promise<
-  Get<operations[OpId], ["responses", 200, "content", "application/json"]>
->
-
-type Fetchers = {
-  ${[...operationIdToSchemaInfo.entries()]
-    .map(
-      ([operationId, { path, summary, description }]) => `/**
-   * @path ${path}${summary ? `\n   * @summary ${summary}` : ""}${
-     description ? `\n   * @description ${description}` : ""
-   }
-   */
-  ${operationId}: Func<"${operationId}">`,
-    )
-    .join(",\n\n  ")}
-}
-
-export const createFetcher = (
+export const createBaseFetcher = (
   ownFetcher: (
     path: string,
     param: {
-      method: "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
+      method: HttpMethods;
       body?: Record<string, unknown>;
-    },
-  ) => Promise<unknown>,
-) =>
-  new Proxy(
-    {},
-    {
-      get:
-        (_, operationId: keyof operations) =>
-        (params: {
-          path?: Record<string, unknown>;
-          query?: Record<string, unknown>;
-          body?: Record<string, unknown>;
-        }) =>
-          ownFetcher(
-            operationIdToPath[operationId].replace(
-              /\\{\\w+\\}/g,
-              (_, key) => (params.path as any)[key],
-              ) + (params.query ? \`?\${new URLSearchParams(params.query as any)}\` : ""),
-            {
-              method: operationIdToMethod[operationId],
-              body: params.body,
-            },
-          ),
-    },
-  ) as Fetchers;`;
+    }
+  ) => Promise<unknown>
+) => {
+  return <Path extends keyof paths, Method extends HttpMethods>(
+    path: Path,
+    opts: Get<paths[Path], [Method, "parameters"]> & { method: Method } & (Get<
+        paths[Path],
+        [Method, "requestBody", "content", "application/json"]
+      > extends never
+        ? {}
+        : { body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]> })
+  ): Promise<Get<paths[Path], [Method, "responses", 200, "content", "application/json"]>> => {
+    return ownFetcher(
+      path + ("query" in opts ? \`?\${new URLSearchParams(opts.query as any)}\` : ""),
+      { method: opts.method, body: (opts as any).body }
+    ) as any;
+  };
+};
+
+export const createOperationIdFetcher = (
+  ownFetcher: (
+    path: string,
+    param: {
+      method: HttpMethods;
+      body?: Record<string, unknown>;
+    }
+  ) => Promise<unknown>
+) => {
+  const baseFetcher = createBaseFetcher(ownFetcher);
+  const f =
+    <Path extends keyof paths, Method extends HttpMethods>(p: Path, m: Method) =>
+    (o: (
+      Get<paths[Path], [Method, "parameters", "query"]> extends never ? {} : { query: Get<paths[Path], [Method, "parameters", "query"]> }
+      ) & (
+      Get<paths[Path], [Method, "requestBody", "content", "application/json"]> extends never ? {} : { body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]> }
+      )
+    ): Promise<Get<paths[Path], [Method, "responses", 200, "content", "application/json"]>> =>
+      baseFetcher(p, { method: m, ...o } as any);
+
+  return {
+    ${[...operationIdToSchemaInfo]
+      .map(([operationId, { path, method }]) => `${operationId}: f("${path}", "${method}")`)
+      .join(",\n    ")}
+  };
+};`;
 }
