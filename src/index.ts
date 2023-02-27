@@ -35,6 +35,8 @@ export type OperationIds = keyof operations
 
 type HttpMethods = "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
 
+type OmitNeverFromRecord<T extends Record<string, unknown>> = Pick<T, {[K in keyof T]: T[K] extends never ? never : K}[keyof T]>
+
 export const createBaseFetcher = (
   ownFetcher: (
     path: string,
@@ -46,12 +48,11 @@ export const createBaseFetcher = (
 ) => {
   return <Path extends keyof paths, Method extends HttpMethods>(
     path: Path,
-    opts: Get<paths[Path], [Method, "parameters"]> & { method: Method } & (Get<
-        paths[Path],
-        [Method, "requestBody", "content", "application/json"]
-      > extends never
-        ? {}
-        : { body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]> })
+    opts: { method: Method } & OmitNeverFromRecord<{
+      path: Get<paths[Path], [Method, "parameters", "path"]>
+      query: Get<paths[Path], [Method, "parameters", "query"]>
+      body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]>
+    }>
   ): Promise<Get<paths[Path], [Method, "responses", 200, "content", "application/json"]>> => {
     return ownFetcher(
       path + ("query" in opts ? \`?\${new URLSearchParams(opts.query as any)}\` : ""),
@@ -72,13 +73,15 @@ export const createOperationIdFetcher = (
   const baseFetcher = createBaseFetcher(ownFetcher);
   const f =
     <Path extends keyof paths, Method extends HttpMethods>(p: Path, m: Method) =>
-    (o: (
-      Get<paths[Path], [Method, "parameters", "query"]> extends never ? {} : { query: Get<paths[Path], [Method, "parameters", "query"]> }
-      ) & (
-      Get<paths[Path], [Method, "requestBody", "content", "application/json"]> extends never ? {} : { body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]> }
-      )
+    (...o: keyof OmitNeverFromRecord<{
+      query: Get<paths[Path], [Method, "parameters", "query"]>,
+      body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]>
+    }> extends never ? [] :  [OmitNeverFromRecord<{
+      query: Get<paths[Path], [Method, "parameters", "query"]>,
+      body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]>
+    }>]
     ): Promise<Get<paths[Path], [Method, "responses", 200, "content", "application/json"]>> =>
-      baseFetcher(p, { method: m, ...o } as any);
+      baseFetcher(p, { method: m, ...o[0] } as any);
 
   return {
     ${[...operationIdToSchemaInfo]
