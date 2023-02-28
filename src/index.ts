@@ -54,9 +54,10 @@ export const createBaseFetcher = (
       body: Get<paths[Path], [Method, "requestBody", "content", "application/json"]>
     }>
   ): Promise<Get<paths[Path], [Method, "responses", 200, "content", "application/json"]>> => {
+    const { method, query, body } = opts as any
     return ownFetcher(
-      path + ("query" in opts ? \`?\${new URLSearchParams(opts.query as any)}\` : ""),
-      { method: opts.method, body: (opts as any).body }
+      path + (query ? \`?\${new URLSearchParams(query as any)}\` : ""),
+      { method, body }
     ) as any;
   };
 };
