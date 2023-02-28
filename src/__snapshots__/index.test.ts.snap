@@ -106,7 +106,16 @@ export type OperationIds = keyof operations
 
 type HttpMethods = \\"get\\" | \\"post\\" | \\"put\\" | \\"patch\\" | \\"delete\\" | \\"option\\" | \\"head\\";
 
-type OmitNeverFromRecord<T extends Record<string, unknown>> = Pick<T, {[K in keyof T]: T[K] extends never ? never : K}[keyof T]>
+type OmitNeverFromRecord<T extends Record<string, unknown>> = Pick<
+  T,
+  {
+    [K in keyof T]: T[K] extends never ? never : K;
+  }[keyof T]
+>;
+
+type FilterPathsByMethod<Method extends HttpMethods> = {
+  [P in keyof paths]: Method extends keyof paths[P] ? P : never;
+}[keyof paths];
 
 export const createBaseFetcher = (
   ownFetcher: (
@@ -114,22 +123,29 @@ export const createBaseFetcher = (
     param: {
       method: HttpMethods;
       body?: Record<string, unknown>;
-    }
-  ) => Promise<unknown>
+    },
+  ) => Promise<unknown>,
 ) => {
-  return <Path extends keyof paths, Method extends HttpMethods>(
-    path: Path,
-    opts: { method: Method } & OmitNeverFromRecord<{
-      path: Get<paths[Path], [Method, \\"parameters\\", \\"path\\"]>
-      query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>
-      body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>
-    }>
-  ): Promise<Get<paths[Path], [Method, \\"responses\\", 200, \\"content\\", \\"application/json\\"]>> => {
-    const { method, query, body } = opts as any
-    return ownFetcher(
-      path + (query ? \`?\${new URLSearchParams(query as any)}\` : \\"\\"),
-      { method, body }
-    ) as any;
+  return new Proxy(
+    {},
+    {
+      get:
+        (_, method: HttpMethods) =>
+        (path: keyof paths, params: { path: string; query: string; body: Record<string, unknown> }) =>
+          ownFetcher(path + (params.query ? \`?\${new URLSearchParams(params.query)}\` : \\"\\"), {
+            method,
+            body: params.body,
+          }),
+    },
+  ) as {
+    [Method in HttpMethods]: <Path extends FilterPathsByMethod<Method>>(
+      path: Path,
+      opts: OmitNeverFromRecord<{
+        path: Get<paths[Path], [Method, \\"parameters\\", \\"path\\"]>;
+        query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>;
+        body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>;
+      }>,
+    ) => Promise<Get<paths[Path], [Method, \\"responses\\", 200, \\"content\\", \\"application/json\\"]>>;
   };
 };
 
@@ -139,21 +155,26 @@ export const createOperationIdFetcher = (
     param: {
       method: HttpMethods;
       body?: Record<string, unknown>;
-    }
-  ) => Promise<unknown>
+    },
+  ) => Promise<unknown>,
 ) => {
   const baseFetcher = createBaseFetcher(ownFetcher);
   const f =
     <Path extends keyof paths, Method extends HttpMethods>(p: Path, m: Method) =>
-    (...o: keyof OmitNeverFromRecord<{
-      query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>,
-      body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>
-    }> extends never ? [] :  [OmitNeverFromRecord<{
-      query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>,
-      body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>
-    }>]
+    (
+      ...o: keyof OmitNeverFromRecord<{
+        query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>;
+        body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>;
+      }> extends never
+        ? []
+        : [
+            OmitNeverFromRecord<{
+              query: Get<paths[Path], [Method, \\"parameters\\", \\"query\\"]>;
+              body: Get<paths[Path], [Method, \\"requestBody\\", \\"content\\", \\"application/json\\"]>;
+            }>,
+          ]
     ): Promise<Get<paths[Path], [Method, \\"responses\\", 200, \\"content\\", \\"application/json\\"]>> =>
-      baseFetcher(p, { method: m, ...o[0] } as any);
+      baseFetcher[m](p as any, o[0] as any);
 
   return {
     listUsers: f(\\"/users\\", \\"get\\"),

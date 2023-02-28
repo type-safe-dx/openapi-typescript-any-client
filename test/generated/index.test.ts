@@ -39,7 +39,7 @@ describe("listUsers", () => {
   });
 
   test("createBaseFetcher", async () => {
-    const res = await baseFetcher("/users", { method: "get", query: { per: 10, page: 0 } });
+    const res = await baseFetcher.get("/users", { query: { per: 10, page: 0 } });
 
     expect(res).toStrictEqual(dummyUsers);
     expect(requestSpy).toHaveBeenCalledWith(

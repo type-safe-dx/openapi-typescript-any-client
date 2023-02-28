@@ -121,8 +121,7 @@ export const fetcherObj = createOperationIdFetcher((path, { method, body }) =>
 <td>
 
 ```ts
-const res = await fetcher("/users", {
-  method: "get",
+const res = await fetcher.get("/users", {
   query: { per: 10, page: 0 },
 });
 ```
