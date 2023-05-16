@@ -101,7 +101,7 @@ export interface operations {
 
 export type OperationIds = keyof operations
 
-type HttpMethods = "get" | "post" | "put" | "patch" | "delete" | "option" | "head";
+type HttpMethods = "get" | "post" | "put" | "patch" | "delete" | "options" | "head";
 
 type OmitNeverFromRecord<T extends Record<string, unknown>> = Pick<
   T,
