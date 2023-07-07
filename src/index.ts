@@ -107,7 +107,7 @@ export const createOperationIdFetcher = (
 
   return {
     ${[...operationIdToSchemaInfo]
-      .map(([operationId, { path, method }]) => `${operationId}: f("${path}", "${method}")`)
+      .map(([operationId, { path, method }]) => `"${operationId}": f("${path}", "${method}")`)
       .join(",\n    ")}
   };
 };`;
